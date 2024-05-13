@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16 FATAL_ERROR)
 project(JoltPhysics CXX)
 
 # When turning this option on, the library will be compiled using doubles for positions. This allows for much bigger worlds.
-option(DOUBLE_PRECISION "Use double precision math" OFF)
+option(DOUBLE_PRECISION "Use double precision math" ON)
 
 # When turning this option on, the library will be compiled with debug symbols
 option(GENERATE_DEBUG_SYMBOLS "Generate debug symbols" ON)
@@ -58,7 +58,7 @@ option(DEBUG_RENDERER_IN_DEBUG_AND_RELEASE "Enable debug renderer in Debug and R
 
 # Setting to enable the debug renderer in all builds.
 # Note that enabling this reduces the performance of the library even if you're not drawing anything.
-option(DEBUG_RENDERER_IN_DISTRIBUTION "Enable debug renderer in all builds" OFF)
+option(DEBUG_RENDERER_IN_DISTRIBUTION "Enable debug renderer in all builds" ON)
 
 # Enable the profiler in Debug and Release builds. Note that PROFILER_IN_DISTRIBUTION will override this setting.
 option(PROFILER_IN_DEBUG_AND_RELEASE "Enable the profiler in Debug and Release builds" ON)
@@ -74,7 +74,7 @@ include(CMakeDependentOption)
 
 # Ability to toggle between the static and DLL versions of the MSVC runtime library
 # Windows Store only supports the DLL version
-cmake_dependent_option(USE_STATIC_MSVC_RUNTIME_LIBRARY "Use the static MSVC runtime library" ON "MSVC;NOT WINDOWS_STORE" OFF)
+cmake_dependent_option(USE_STATIC_MSVC_RUNTIME_LIBRARY "Use the static MSVC runtime library" OFF "MSVC;NOT WINDOWS_STORE" OFF)
 
 # Determine which configurations exist
 if (CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR) # Only do this when we're at the top level, see: https://gitlab.kitware.com/cmake/cmake/-/issues/24181
