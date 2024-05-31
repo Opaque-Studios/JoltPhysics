@@ -2,6 +2,58 @@
 
 For breaking API changes see [this document](https://github.com/jrouwe/JoltPhysics/blob/master/Docs/APIChanges.md).
 
+## Unreleased changes
+
+### New functionality
+
+#### Soft Body
+
+* Added support for applying a global force to a soft body through Body::AddForce.
+* Implemented better algorithm to split soft body constraints into parallel groups. This makes the soft body simulation 10-20% faster and also enables multithreading LRA, bend, volume and skinned constraints.
+* Added approximate ACos function which speeds up dihedral bend constraints by approx. 10%.
+* Improved sorting of LRA soft body constraints to improve convergence.
+* Added ability to draw soft body constraint evaluation order.
+
+#### HeightField Shape
+
+* Sped up deserialization of HeightFieldShape/MeshShape classes by optimizing reading a vector of data in StreamIn, by switching std::vector out for a custom Array class and by combining a number of allocations into one.
+* Added HeightFieldShape::GetMinHeightValue/GetMaxHeightValue that can be used to know which range of heights are accepted by SetHeights.
+* Allowing negative stride when getting/setting height field shape heights or materials. This improves performance if your data happens to be layed out the wrong way around.
+
+#### Character
+
+* Added CharacterBaseSettings::mEnhancedInternalEdgeRemoval (default false) that allows smoother movement for both the Character and CharacterVirtual class.
+
+#### Vehicles
+
+* Added ability to override the gravity vector per vehicle. This allows creating vehicles that can e.g. stick to the surface of a track and drive upside down. See VehicleConstraint::OverrideGravity.
+
+#### Various
+
+* Replaced std::vector with a custom Array class. std::vector initializes memory to zero which causes an undesired performance overhead.
+* Added macro JPH_OBJECT_STREAM that controls if ObjectStream and serialized attributes are compiled into the library or not. This can reduce the size of the library if you're not using this feature.
+* Added option to get a callback when a JobSystemThreadPool thread starts/stops. This allows you to e.g. set application specific thread locals.
+* Added cmake option USE_ASSERTS to turn on asserts in builds other than the Debug build.
+* Switch from using _DEBUG to NDEBUG to detect debug mode. NDEBUG is defined in the standard while _DEBUG is Visual Studio specific.
+* The OVERRIDE_CXX_FLAGS cmake flag will now also work for MSVC and allow you to specify your own CMAKE_CXX_FLAGS_DEBUG/CMAKE_CXX_FLAGS_RELEASE flags
+* BodyInterface::AddForce/Torque functions now take an optional EActivation parameter that makes it optional to activate the body. This can be used e.g. to not let the body wake up if you're applying custom gravity to a body.
+* Activating bodies now resets the sleep timer when the body is already active. This prevents the body from going to sleep in the next frame and can avoid quick 1 frame naps.
+
+### Bug fixes
+
+* Fix for new warning in MSVC 17.10 in immintrin.h: '__check_isa_support': unreferenced inline function has been removed.
+* Fix error in gcc 14. Using always_inline in debug mode causes error: "inlining failed in call to 'always_inline' 'XXX': function not considered for inlining"
+* Fixed clang-18 warning "LLVMgold.so: error loading plugin ... cannot open shared object file: No such file or directory", due to https://github.com/llvm/llvm-project/issues/84271 it currently doesn't support LTO.
+* When calling CharacterVirtual::SetShape, a collision with a sensor would cause the function to abort as if the character was in collision.
+* Fixed bug where the the skinned position of a soft body would update in the first sub-iteration, causing a large velocity spike and jittery behavior.
+* Fixed bug where the velocity of soft body vertices would increase indefinitely when resting on the back stop of a skinned constraint.
+* Fixed bug when SkinVertices for a soft body is not called every frame, the previous position of the skin was still used causing a replay of the motion of the previous frame.
+* Fixed handling of mass override from SoftBodyContactListener. Previously if the inverse mass of both of the soft body and the colliding body were set to 0, the soft body would still react.
+* Fixed crash in Ragdoll::DriveToPoseUsingMotors when using constraints other than SwingTwistConstraint.
+* Fixed -Wunused-parameter warning on GCC when building in Release mode with -Wextra.
+* Fixed tolerance in assert in GetPenetrationDepthStepEPA.
+* Due to a difference between the used instructions in NEON and SSE -Vec3::sZero() returned different binary results on ARM vs x86. When JPH_CROSS_PLATFORM_DETERMINISTIC is defined, we ensure that the calculation is the same now.
+
 ## v5.0.0
 
 ### New Functionality

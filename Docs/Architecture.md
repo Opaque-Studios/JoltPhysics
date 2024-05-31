@@ -211,6 +211,26 @@ will return a box of size 2x2x2 centered around the origin, so in order to get i
 
 Note that when you work with interface of [BroadPhaseQuery](@ref BroadPhaseQuery), [NarrowPhaseQuery](@ref NarrowPhaseQuery) or [TransformedShape](@ref TransformedShape) this transformation is done for you.
 
+### Scaling Shapes {#scaling-shapes}
+
+Shapes can be scaled using the [ScaledShape](@ref ScaledShape) class. You can scale a shape like:
+
+	JPH::RefConst<Shape> my_scaled_shape = new JPH::ScaledShape(my_non_scaled_shape, JPH::Vec3(x_scale, y_scale, z_scale));
+
+Not all scales are valid for every shape. Use Shape::IsValidScale to check if a scale is valid for a particular shape (the documentation for this function also lists the rules for all shape types).
+
+A safer way of scaling shapes is provided by the Shape::ScaleShape function:
+
+	JPH::Shape::ShapeResult my_scaled_shape = my_non_scaled_shape->ScaleShape(JPH::Vec3(x_scale, y_scale, z_scale));
+
+This function will check if a scale is valid for a particular shape and if a scale is not valid, it will produce the closest scale that is valid. 
+For example, if you scale a CompoundShape that has rotated sub shapes, a non-uniform scale would cause shearing. In that case the Shape::ScaleShape function will create a new compound shape and scale the sub shapes (losing the shear) rather than creating a ScaledShape around the entire CompoundShape.
+
+Updating scaling after a body is created is also possible, but should be done with care. Imagine a sphere in a pipe, scaling the sphere so that it becomes bigger than the pipe creates an impossible situation as there is no way to resolve the collision anymore. 
+Please take a look at the [DynamicScaledShape](https://github.com/jrouwe/JoltPhysics/blob/master/Samples/Tests/ScaledShapes/DynamicScaledShape.cpp) demo. The reason that no ScaledShape::SetScale function exists is to ensure thread safety when collision queries are being executed while shapes are modified.
+
+Note that there are many functions that take a scale in Jolt (e.g. CollisionDispatch::sCollideShapeVsShape), usually the shape is scaled relative to its center of mass. The Shape::ScaleShape function scales the shape relative to the origin of the shape.
+
 ### Creating Custom Shapes {#creating-custom-shapes}
 
 If the defined Shape classes are not sufficient, or if your application can make a more efficient implementation because it has specific domain knowledge, it is possible to create a custom collision shape:
@@ -286,7 +306,7 @@ The adjacent faces of the soft body will be used to calculate the normal of each
 Soft bodies are currently in development, please note the following:
 
 * Soft bodies can only collide with rigid bodies, collisions between soft bodies are not implemented yet.
-* AddForce/AddTorque/SetLinearVelocity/SetLinearVelocityClamped/SetAngularVelocity/SetAngularVelocityClamped/AddImpulse/AddAngularImpulse have no effect on soft bodies as the velocity is stored per particle rather than per body.
+* AddTorque/SetLinearVelocity/SetLinearVelocityClamped/SetAngularVelocity/SetAngularVelocityClamped/AddImpulse/AddAngularImpulse have no effect on soft bodies as the velocity is stored per particle rather than per body.
 * Buoyancy calculations have not been implemented yet.
 * Constraints cannot operate on soft bodies, set the inverse mass of a particle to zero and move it by setting a velocity to constrain a soft body to something else.
 * When calculating friction / restitution an empty SubShapeID will be passed to the ContactConstraintManager::CombineFunction because this is called once per body pair rather than once per sub shape as is common for rigid bodies.
@@ -359,6 +379,22 @@ Because Jolt Physics uses a Symplectic Euler integrator, there will still be a s
 Constraints can be turned on / off by calling Constraint::SetEnabled. After every simulation step, check the total 'lambda' applied on each constraint and disable the constraint if the value goes over a certain threshold. Use e.g. SliderConstraint::GetTotalLambdaPosition / HingeConstraint::GetTotalLambdaRotation. You can see 'lambda' as the linear/angular impulse applied at the constraint in the last physics step to keep the constraint together.
 
 # Collision Detection {#collision-detection}
+
+Collision detection can be performed through various interfaces:
+
+* Coarse collision detection against the world, using only the bounding box of each body is done through the BroadPhaseQuery interface (see PhysicsSystem::GetBroadPhaseQuery).
+* Detailed collision detection against the world is done through NarrowPhaseQuery interface (see PhysicsSystem::GetNarrowPhaseQuery).
+* Checking collisions with a single body is done through TransformedShape (see Body::GetTransformedShape)
+* Checking collisions against a single shape is done through various interfaces on the Shape class (see e.g. Shape::CastRay) or through the CollisionDispatch interface.
+
+The most common collision tests are:
+
+* Casting a ray: BroadPhaseQuery::CastRay, NarrowPhaseQuery::CastRay, TransformedShape::CastRay, Shape::CastRay.
+* Colliding a shape (e.g. a sphere) in a static position: NarrowPhaseQuery::CollideShape, TransformedShape::CollideShape, CollisionDispatch::sCollideShapeVsShape.
+* Casting a shape (sweeping it from a start to an end position and finding collisions along the way): NarrowPhaseQuery::CastShape, TransformedShape::CastShape, CollisionDispatch::sCastShapeVsShapeWorldSpace.
+* Checking if a shape contains a point: BroadPhaseQuery::CollidePoint, NarrowPhaseQuery::CollidePoint, TransformedShape::CollidePoint, Shape::CollidePoint.
+
+The following sections describe the collision detection system in more detail.
 
 ## Broad Phase {#broad-phase}
 
@@ -531,7 +567,7 @@ Because of the minimal use of doubles, the simulation runs 5-10% slower in doubl
 
 The physics simulation is deterministic provided that:
 
-* The APIs that modify the simulation are called in exactly the same order. For example, bodies and constraints need to be added/removed/modified in exactly the same order so that the state at the beginning of a simulation step is exactly the same for both simulations.
+* The APIs that modify the simulation are called in exactly the same order. For example, bodies and constraints need to be added/removed/modified in exactly the same order so that the state at the beginning of a simulation step is exactly the same for both simulations ([exceptions](@ref sloppy-determinism)).
 * The same binary code is used to run the simulation. For example, when you run the simulation on Windows it doesn't matter if you have an AMD or Intel processor.
 
 If you want cross platform determinism then please turn on the CROSS_PLATFORM_DETERMINISTIC option in CMake. This will make the library approximately 8% slower but the simulation will be deterministic regardless of:
@@ -565,9 +601,18 @@ When running the Samples Application you can press ESC, Physics Settings and che
 
 # Rolling Back a Simulation {#rolling-back-a-simulation}
 
-When synchronizing two simulations via a network, it is possible that a change that needed to be applied at frame N is received at frame N + M. This will require rolling back the simulation to the state of frame N and repeating the simulation with the new inputs. This can be implemented by saving the physics state using [SaveState](@ref PhysicsSystem::SaveState) at every frame. To roll back, call [RestoreState](@ref PhysicsSystem::RestoreState) with the state at frame N. SaveState only records the state that the physics engine modifies during its update step (positions, velocities etc.), so if you change anything else you need to restore this yourself. E.g. if you did a [SetFriction](@ref Body::SetFriction) on frame N + 2 then, when rewinding, you need to restore the friction to what is was on frame N and update it again on frame N + 2 when you replay. If you start adding/removing objects (e.g. bodies or constraints) during these frames, the RestoreState function will not work. If you added a body on frame N + 1, you'll need to remove it when rewinding and then add it back on frame N + 1 again (with the proper initial position/velocity etc. because it won't be contained in the snapshot at frame N).
+When synchronizing two simulations via a network, it is possible that a change that needed to be applied at frame N is received at frame N + M. This will require rolling back the simulation to the state of frame N and repeating the simulation with the new inputs. This can be implemented by saving the physics state using [SaveState](@ref PhysicsSystem::SaveState) at every frame. To roll back, call [RestoreState](@ref PhysicsSystem::RestoreState) with the state at frame N. SaveState only records the state that the physics engine modifies during its update step (positions, velocities etc.), so if you change anything else you need to restore this yourself. E.g. if you did a [SetFriction](@ref Body::SetFriction) on frame N + 2 then, when rewinding, you need to restore the friction to what is was on frame N and update it again on frame N + 2 when you replay. If you start adding/removing objects (e.g. bodies or constraints) during these frames, the RestoreState function will not work. If you added a body on frame N + 1, you'll need to remove it when rewinding and then add it back on frame N + 1 again (with the proper initial position/velocity etc. because it won't be contained in the snapshot at frame N). The [SaveState](@ref PhysicsSystem::SaveState) function comes with a StateRecorderFilter interface that you can use to selectively save state. E.g. [ShouldSaveBody](@ref StateRecorderFilter::ShouldSaveBody) could simply return false for all static or inactive bodies which can be used to limit the size of the snapshot.
 
 If you wish to share saved state between server and client, you need to ensure that all APIs that modify the state of the world are called in the exact same order. So if the client creates physics objects for player 1 then 2 and the server creates the objects for 2 then 1 you already have a problem (the body IDs will be different, which will render the save state snapshots incompatible). When rolling back a simulation, you'll also need to ensure that the BodyIDs are kept the same, so you need to remove/add the body from/to the physics system instead of destroy/re-create them or you need to create bodies with the same ID on both sides using [BodyInterface::CreateBodyWithID](@ref BodyInterface::CreateBodyWithID).
+
+# Being Sloppy While Still Being Deterministic {#sloppy-determinism}
+
+If you do things in the same order it is guaranteed to be deterministic, but if you know what you're doing you can take some liberties.
+E.g. doing `BodyA.SetFriction(...); BodyB.SetFriction(...);` or `BodyB.SetFriction(...); BodyA.SetFriction(...);` doesn't matter for determinism,
+the main thing you need to ensure is that when you do a PhysicsSystem::Update that the binary state is the same.
+Also adding body A then B is the same as B then A as long as the BodyIDs of A and B are consistent.
+For constraints, adding A then B or B then A is equivalent as long as ConstraintSettings::mConstraintPriority is unique per constraint so that it defines a consistent ordering (in this case all constraints in the system must have a unique number).
+Note though that PhysicsSystem::SaveState relies on the ordering of constraints, so you'll have to skip serializing constraints by not setting EStateRecorderState::Constraints and call Constraint::SaveState / Constraint::RestoreState directly yourself.
 
 # Working With Multiple Physics Systems {#working-with-multiple-physics-systems}
 
