@@ -64,7 +64,7 @@ option(DEBUG_RENDERER_IN_DEBUG_AND_RELEASE "Enable debug renderer in Debug and R
 option(DEBUG_RENDERER_IN_DISTRIBUTION "Enable debug renderer in all builds" ON)
 
 # Enable the profiler in Debug and Release builds. Note that PROFILER_IN_DISTRIBUTION will override this setting.
-option(PROFILER_IN_DEBUG_AND_RELEASE "Enable the profiler in Debug and Release builds" ON)
+option(PROFILER_IN_DEBUG_AND_RELEASE "Enable the profiler in Debug and Release builds" OFF)
 
 # Enable the profiler in all builds.
 # Note that enabling this reduces the performance of the library.
