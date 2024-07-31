@@ -21,7 +21,7 @@ option(CROSS_PLATFORM_DETERMINISTIC "Cross platform deterministic" OFF)
 option(CROSS_COMPILE_ARM "Cross compile to aarch64-linux-gnu" OFF)
 
 # When turning this option on, Jolt will be compiled as a shared library and public symbols will be exported.
-option(BUILD_SHARED_LIBS "Compile Jolt as a shared library" OFF)
+option(BUILD_SHARED_LIBS "Compile Jolt as a shared library" ON)
 
 # When turning this option on, the library will be compiled with interprocedural optimizations enabled, also known as link-time optimizations or link-time code generation.
 # Note that if you turn this on you need to use SET_INTERPROCEDURAL_OPTIMIZATION() or set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON) to enable LTO specifically for your own project as well.
@@ -71,7 +71,7 @@ option(PROFILER_IN_DEBUG_AND_RELEASE "Enable the profiler in Debug and Release b
 option(PROFILER_IN_DISTRIBUTION "Enable the profiler in all builds" OFF)
 
 # Setting this option will force the library to use malloc/free instead of allowing the user to override the memory allocator
-option(DISABLE_CUSTOM_ALLOCATOR "Disable support for a custom memory allocator" OFF)
+option(DISABLE_CUSTOM_ALLOCATOR "Disable support for a custom memory allocator" ON)
 
 # Setting this option will force the library to use the STL vector instead of the custom Array class
 option(USE_STD_VECTOR "Use std::vector instead of own Array class" OFF)
