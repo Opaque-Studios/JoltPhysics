@@ -6,7 +6,7 @@
 
 // Jolt library version
 #define JPH_VERSION_MAJOR 5
-#define JPH_VERSION_MINOR 0
+#define JPH_VERSION_MINOR 1
 #define JPH_VERSION_PATCH 1
 
 // Determine which features the library was compiled with
@@ -86,12 +86,12 @@
 #elif defined(__FreeBSD__)
 	#define JPH_PLATFORM_FREEBSD
 #elif defined(__APPLE__)
-    #include <TargetConditionals.h>
-    #if defined(TARGET_OS_IPHONE) && !TARGET_OS_IPHONE
-        #define JPH_PLATFORM_MACOS
-    #else
-        #define JPH_PLATFORM_IOS
-    #endif
+	#include <TargetConditionals.h>
+	#if defined(TARGET_OS_IPHONE) && !TARGET_OS_IPHONE
+		#define JPH_PLATFORM_MACOS
+	#else
+		#define JPH_PLATFORM_IOS
+	#endif
 #elif defined(__EMSCRIPTEN__)
 	#define JPH_PLATFORM_WASM
 #endif
@@ -210,7 +210,7 @@
 #ifdef JPH_SHARED_LIBRARY
 	#ifdef JPH_BUILD_SHARED_LIBRARY
 		// While building the shared library, we must export these symbols
-		#ifdef JPH_PLATFORM_WINDOWS
+		#if defined(JPH_PLATFORM_WINDOWS) && !defined(JPH_COMPILER_MINGW)
 			#define JPH_EXPORT __declspec(dllexport)
 		#else
 			#define JPH_EXPORT __attribute__ ((visibility ("default")))
@@ -221,7 +221,7 @@
 		#endif
 	#else
 		// When linking against Jolt, we must import these symbols
-		#ifdef JPH_PLATFORM_WINDOWS
+		#if defined(JPH_PLATFORM_WINDOWS) && !defined(JPH_COMPILER_MINGW)
 			#define JPH_EXPORT __declspec(dllimport)
 		#else
 			#define JPH_EXPORT __attribute__ ((visibility ("default")))
@@ -318,6 +318,7 @@
 	JPH_GCC_SUPPRESS_WARNING("-Wclass-memaccess")												\
 	JPH_GCC_SUPPRESS_WARNING("-Wpedantic")														\
 	JPH_GCC_SUPPRESS_WARNING("-Wunused-parameter")												\
+	JPH_GCC_SUPPRESS_WARNING("-Wmaybe-uninitialized")											\
 																								\
 	JPH_MSVC_SUPPRESS_WARNING(4619) /* #pragma warning: there is no warning number 'XXXX' */	\
 	JPH_MSVC_SUPPRESS_WARNING(4514) /* 'X' : unreferenced inline function has been removed */	\
@@ -405,6 +406,9 @@ JPH_SUPPRESS_WARNINGS_STD_BEGIN
 #include <functional>
 #include <algorithm>
 #include <cstdint>
+#ifdef JPH_COMPILER_MSVC
+	#include <malloc.h> // for alloca
+#endif
 #if defined(JPH_USE_SSE)
 	#include <immintrin.h>
 #elif defined(JPH_USE_NEON)
@@ -572,6 +576,24 @@ static_assert(sizeof(void *) == (JPH_CPU_ADDRESS_BITS == 64? 8 : 4), "Invalid si
 		__pragma(float_control(pop))
 #else
 	#error Undefined
+#endif
+
+// Check if Thread Sanitizer is enabled
+#ifdef __has_feature
+	#if __has_feature(thread_sanitizer)
+		#define JPH_TSAN_ENABLED
+	#endif
+#else
+	#ifdef __SANITIZE_THREAD__
+		#define JPH_TSAN_ENABLED
+	#endif
+#endif
+
+// Attribute to disable Thread Sanitizer for a particular function
+#ifdef JPH_TSAN_ENABLED
+	#define JPH_TSAN_NO_SANITIZE __attribute__((no_sanitize("thread")))
+#else
+	#define JPH_TSAN_NO_SANITIZE
 #endif
 
 JPH_NAMESPACE_END
