@@ -39,7 +39,7 @@ ShapeSettings::ShapeResult SphereShapeSettings::Create() const
 
 SphereShape::SphereShape(const SphereShapeSettings &inSettings, ShapeResult &outResult) :
 	ConvexShape(EShapeSubType::Sphere, inSettings, outResult),
-	mRadius(inSettings.mRadius)
+	mRadius(inSettings.mRadius), mbDraw(inSettings.mbDraw)
 {
 	if (inSettings.mRadius <= 0.0f)
 	{
@@ -214,6 +214,10 @@ void SphereShape::GetSubmergedVolume(Mat44Arg inCenterOfMassTransform, Vec3Arg i
 #ifdef JPH_DEBUG_RENDERER
 void SphereShape::Draw(DebugRenderer *inRenderer, RMat44Arg inCenterOfMassTransform, Vec3Arg inScale, ColorArg inColor, bool inUseMaterialColors, bool inDrawWireframe) const
 {
+	if (!mbDraw)
+	{
+		return;
+	}
 	DebugRenderer::EDrawMode draw_mode = inDrawWireframe? DebugRenderer::EDrawMode::Wireframe : DebugRenderer::EDrawMode::Solid;
 	inRenderer->DrawUnitSphere(inCenterOfMassTransform * Mat44::sScale(mRadius * inScale.Abs().GetX()), inUseMaterialColors? GetMaterial()->GetDebugColor() : inColor, DebugRenderer::ECastShadow::On, draw_mode);
 }

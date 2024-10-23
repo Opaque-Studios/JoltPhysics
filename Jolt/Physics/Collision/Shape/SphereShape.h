@@ -18,12 +18,14 @@ public:
 							SphereShapeSettings() = default;
 
 	/// Create a sphere with radius inRadius
-							SphereShapeSettings(float inRadius, const PhysicsMaterial *inMaterial = nullptr)	: ConvexShapeSettings(inMaterial), mRadius(inRadius) { }
+							SphereShapeSettings(float inRadius, bool bDraw = true, const PhysicsMaterial *inMaterial = nullptr)	: ConvexShapeSettings(inMaterial), mRadius(inRadius), mbDraw(bDraw) { }
 
 	// See: ShapeSettings
 	virtual ShapeResult		Create() const override;
 
 	float					mRadius = 0.0f;
+
+	bool					mbDraw = true;
 };
 
 /// A sphere, centered around the origin.
@@ -120,6 +122,7 @@ private:
 	class					SphereWithConvex;
 
 	float					mRadius = 0.0f;
+	bool					mbDraw = false;
 };
 
 JPH_NAMESPACE_END
