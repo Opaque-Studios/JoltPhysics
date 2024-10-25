@@ -18,7 +18,8 @@ public:
 							SphereShapeSettings() = default;
 
 	/// Create a sphere with radius inRadius
-							SphereShapeSettings(float inRadius, bool bDraw = true, const PhysicsMaterial *inMaterial = nullptr)	: ConvexShapeSettings(inMaterial), mRadius(inRadius), mbDraw(bDraw) { }
+							SphereShapeSettings(float inRadius, bool bDraw = true, bool bDrawCube = false, const PhysicsMaterial *inMaterial = nullptr)	:
+	ConvexShapeSettings(inMaterial), mRadius(inRadius), mbDraw(bDraw), mbDrawCube(bDrawCube) { }
 
 	// See: ShapeSettings
 	virtual ShapeResult		Create() const override;
@@ -26,6 +27,8 @@ public:
 	float					mRadius = 0.0f;
 
 	bool					mbDraw = true;
+
+	bool					mbDrawCube = false;
 };
 
 /// A sphere, centered around the origin.
@@ -123,6 +126,8 @@ private:
 
 	float					mRadius = 0.0f;
 	bool					mbDraw = false;
+	bool					mbDrawCube = false;
+
 };
 
 JPH_NAMESPACE_END

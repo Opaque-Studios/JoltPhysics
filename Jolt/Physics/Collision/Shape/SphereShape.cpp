@@ -39,7 +39,7 @@ ShapeSettings::ShapeResult SphereShapeSettings::Create() const
 
 SphereShape::SphereShape(const SphereShapeSettings &inSettings, ShapeResult &outResult) :
 	ConvexShape(EShapeSubType::Sphere, inSettings, outResult),
-	mRadius(inSettings.mRadius), mbDraw(inSettings.mbDraw)
+	mRadius(inSettings.mRadius), mbDraw(inSettings.mbDraw), mbDrawCube(inSettings.mbDrawCube)
 {
 	if (inSettings.mRadius <= 0.0f)
 	{
@@ -214,12 +214,21 @@ void SphereShape::GetSubmergedVolume(Mat44Arg inCenterOfMassTransform, Vec3Arg i
 #ifdef JPH_DEBUG_RENDERER
 void SphereShape::Draw(DebugRenderer *inRenderer, RMat44Arg inCenterOfMassTransform, Vec3Arg inScale, ColorArg inColor, bool inUseMaterialColors, bool inDrawWireframe) const
 {
+	// Note: This is strange code for DrawCube, but we have cases where we want to use a Sphere Phys shape and simulate as a sphere but draw it differently.
 	if (!mbDraw)
 	{
 		return;
 	}
+
 	DebugRenderer::EDrawMode draw_mode = inDrawWireframe? DebugRenderer::EDrawMode::Wireframe : DebugRenderer::EDrawMode::Solid;
-	inRenderer->DrawUnitSphere(inCenterOfMassTransform * Mat44::sScale(mRadius * inScale.Abs().GetX()), inUseMaterialColors? GetMaterial()->GetDebugColor() : inColor, DebugRenderer::ECastShadow::On, draw_mode);
+	if (!mbDrawCube)
+	{
+		inRenderer->DrawUnitSphere(inCenterOfMassTransform * Mat44::sScale(mRadius * inScale.Abs().GetX()), inUseMaterialColors? GetMaterial()->GetDebugColor() : inColor, DebugRenderer::ECastShadow::On, draw_mode);
+	}
+	else
+	{
+		inRenderer->DrawBox(inCenterOfMassTransform * Mat44::sScale(inScale.Abs()), GetLocalBounds(), inUseMaterialColors? GetMaterial()->GetDebugColor() : inColor, DebugRenderer::ECastShadow::On, draw_mode);
+	}
 }
 #endif // JPH_DEBUG_RENDERER
 
