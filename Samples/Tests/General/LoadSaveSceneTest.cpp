@@ -145,7 +145,7 @@ Ref<PhysicsScene> LoadSaveSceneTest::sCreateScene()
 
 	// Some simple primitives
 	scene->AddBody(BodyCreationSettings(new TriangleShapeSettings(Vec3(-2, 0, 0), Vec3(0, 1, 0), Vec3(2, 0, 0), 0.0f, new PhysicsMaterialSimple("Triangle Material", next_color())), next_pos(), Quat::sRotation(Vec3::sAxisX(), 0.5f * JPH_PI), EMotionType::Static, Layers::NON_MOVING));
-	scene->AddBody(BodyCreationSettings(new SphereShapeSettings(0.2f, new PhysicsMaterialSimple("Sphere Material", next_color())), next_pos(), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING));
+	scene->AddBody(BodyCreationSettings(new SphereShapeSettings(0.2f, true, false, new PhysicsMaterialSimple("Sphere Material", next_color())), next_pos(), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING));
 	scene->AddBody(BodyCreationSettings(new BoxShapeSettings(Vec3(0.2f, 0.2f, 0.4f), 0.01f, new PhysicsMaterialSimple("Box Material", next_color())), next_pos(), Quat::sIdentity(), EMotionType::Dynamic, Layers::MOVING));
 	scene->AddBody(BodyCreationSettings(new CapsuleShapeSettings(1.5f, 0.2f, new PhysicsMaterialSimple("Capsule Material", next_color())), next_pos(), Quat::sRotation(Vec3::sAxisX(), 0.5f * JPH_PI), EMotionType::Dynamic, Layers::MOVING));
 	scene->AddBody(BodyCreationSettings(new TaperedCapsuleShapeSettings(0.5f, 0.1f, 0.2f, new PhysicsMaterialSimple("Tapered Capsule Material", next_color())), next_pos(), Quat::sRotation(Vec3::sAxisZ(), 0.5f * JPH_PI), EMotionType::Dynamic, Layers::MOVING));
