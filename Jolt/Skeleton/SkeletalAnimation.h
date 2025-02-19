@@ -31,6 +31,9 @@ public:
 
 		Quat							mRotation = Quat::sIdentity();						///< Local space rotation of the joint
 		Vec3							mTranslation = Vec3::sZero();						///< Local space translation of the joint
+		bool							mbIsConfident = true;								///< (traxs-solver) -Is the joint currently confident
+		bool							mbIsPinned = false;									///< (traxs-solver) - Is this joint currently pinned (using the mPinnedTranslation)
+		Vec3							mPinnedTranslation = Vec3::sZero();					///< (traxs-solver) - Last known good Local space translation of the joint (based off of the last confidence translation)
 	};
 
 	/// Contains the state of a single joint at a particular time
