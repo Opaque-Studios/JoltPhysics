@@ -38,6 +38,7 @@ public:
 		String							mPinnedJoint = "";									///< (traxs-solver) - The current joint this is pinned to (if any)
 		Vec3							mPinnedTranslation = Vec3::sZero();					///< (traxs-solver) - Last known good Local space translation of the joint (based off of the last confidence translation)
 		Vec3							mTargetEffectorTranslation = Vec3::sZero();			///< (traxs-solver) - The target translation to drive the smart blend to.
+		Quat							mTargetEffectorRotation = Quat::sIdentity();		///< (traxs-solver) - The target rotation to drive the smart blend to.
 		Vec3							mActualEffectorTranslation = Vec3::sZero();			///< (traxs-solver) - The actual translation of the effector (takes smart blend into account).
 	};
 
