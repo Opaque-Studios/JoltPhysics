@@ -42,6 +42,16 @@ void SkeletalAnimation::JointState::FromMatrix(Mat44Arg inMatrix)
 	mTranslation = inMatrix.GetTranslation();
 }
 
+void SkeletalAnimation::JointState::ResetPinState()
+{
+	mbIsConfident = true;
+	mbIsPinned = false;
+	mPinnedJoint = "";
+	mPinnedTranslation = Vec3::sZero();
+	mTargetEffectorTranslation = Vec3::sZero();
+	mActualEffectorTranslation = Vec3::sZero();
+}
+
 float SkeletalAnimation::GetDuration() const
 {
 	if (!mAnimatedJoints.empty() && !mAnimatedJoints[0].mKeyframes.empty())

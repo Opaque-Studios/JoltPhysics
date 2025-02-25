@@ -25,7 +25,7 @@ public:
 	public:
 		/// Convert from a local space matrix
 		void							FromMatrix(Mat44Arg inMatrix);
-
+		JPH_EXPORT void					ResetPinState();
 		/// Convert to matrix representation
 		inline Mat44					ToMatrix() const									{ return Mat44::sRotationTranslation(mRotation, mTranslation); }
 
@@ -37,7 +37,6 @@ public:
 		bool							mbIsPinned = false;									///< (traxs-solver) - Is this joint currently pinned (using the mPinnedTranslation)
 		String							mPinnedJoint = "";									///< (traxs-solver) - The current joint this is pinned to (if any)
 		Vec3							mPinnedTranslation = Vec3::sZero();					///< (traxs-solver) - Last known good Local space translation of the joint (based off of the last confidence translation)
-		Vec3							mTargetEffectorPreviousTranslation = Vec3::sZero(); ///< (traxs-solver) - The previous frames (frame - 1) target translation to drive the smart blend to.
 		Vec3							mTargetEffectorTranslation = Vec3::sZero();			///< (traxs-solver) - The target translation to drive the smart blend to.
 		Vec3							mActualEffectorTranslation = Vec3::sZero();			///< (traxs-solver) - The actual translation of the effector (takes smart blend into account).
 	};
