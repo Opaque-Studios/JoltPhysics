@@ -36,6 +36,7 @@ public:
 		bool							mbIsConfident = true;								///< (traxs-solver) - Is the joint currently confident
 		bool							mbIsPinned = false;									///< (traxs-solver) - Is this joint currently pinned (using the mPinnedTranslation)
 		String							mPinnedJoint = "";									///< (traxs-solver) - The current joint this is pinned to (if any)
+		bool							mbUsingMarkerConstraint = false;					///< (traxs-solver) - Is this joint using a marker constraint
 		Vec3							mPinnedTranslation = Vec3::sZero();					///< (traxs-solver) - Last known good Local space translation of the joint (based off of the last confidence translation)
 		Vec3							mTargetEffectorTranslation = Vec3::sZero();			///< (traxs-solver) - The target translation to drive the smart blend to.
 		Vec3							mActualEffectorTranslation = Vec3::sZero();			///< (traxs-solver) - The actual translation of the effector (takes smart blend into account).
