@@ -22,6 +22,18 @@ public:
 	{
 		JPH_DECLARE_SERIALIZABLE_NON_VIRTUAL(JPH_EXPORT, JointState)
 
+		struct MarkerConstraint
+		{
+			bool						mbUsingMarkerConstraint = false;								 ///< (traxs-solver) - Is this joint using a marker constraint
+			float						mEffectorCentroidMarkerVelocity = 0.f;							 ///< (traxs-solver) - Velcoity over time of the TargetEffectorCentroidTranslation built up from the previous
+			JPH::Vec3					mPreviousEffectorCentroidMarkerTranslation = JPH::Vec3::sZero(); ///< (traxs-solver) - Previous translation of the effector centroid
+			float						mEffectorCentroidMarkerVelocityWeight = 0.f;					 ///< (traxs-solver) 0: Use the marker constraint, 1: Use the GOFK Pose joint's translation
+
+			bool IsConstrained() const { return mbUsingMarkerConstraint; }
+			JPH_EXPORT void Constrain(JPH::Vec3Arg inEffectorCentroidMarkerTranslation);
+			JPH_EXPORT void RemoveConstraint();
+		};
+
 	public:
 		/// Convert from a local space matrix
 		void							FromMatrix(Mat44Arg inMatrix);
@@ -36,10 +48,10 @@ public:
 		bool							mbIsConfident = true;								///< (traxs-solver) - Is the joint currently confident
 		bool							mbIsPinned = false;									///< (traxs-solver) - Is this joint currently pinned (using the mPinnedTranslation)
 		String							mPinnedJoint = "";									///< (traxs-solver) - The current joint this is pinned to (if any)
-		bool							mbUsingMarkerConstraint = false;					///< (traxs-solver) - Is this joint using a marker constraint
 		Vec3							mPinnedTranslation = Vec3::sZero();					///< (traxs-solver) - Last known good Local space translation of the joint (based off of the last confidence translation)
 		Vec3							mTargetEffectorTranslation = Vec3::sZero();			///< (traxs-solver) - The target translation to drive the smart blend to.
 		Vec3							mActualEffectorTranslation = Vec3::sZero();			///< (traxs-solver) - The actual translation of the effector (takes smart blend into account).
+		MarkerConstraint				mMarkerConstraint;									///< (traxs-solver) - Marker constraint for this joint
 	};
 
 	/// Contains the state of a single joint at a particular time

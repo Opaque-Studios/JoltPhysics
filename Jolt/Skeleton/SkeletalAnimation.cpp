@@ -36,6 +36,19 @@ JPH_IMPLEMENT_SERIALIZABLE_NON_VIRTUAL(SkeletalAnimation)
 }
 
 
+void SkeletalAnimation::JointState::MarkerConstraint::Constrain(JPH::Vec3Arg inEffectorCentroidMarkerTranslation)
+{
+	mbUsingMarkerConstraint = true;
+	mPreviousEffectorCentroidMarkerTranslation = inEffectorCentroidMarkerTranslation;
+}
+
+void SkeletalAnimation::JointState::MarkerConstraint::RemoveConstraint()
+{
+	mEffectorCentroidMarkerVelocity = 0.f;
+	mEffectorCentroidMarkerVelocityWeight = 0.f;
+	mPreviousEffectorCentroidMarkerTranslation = JPH::Vec3::sZero();
+}
+
 void SkeletalAnimation::JointState::FromMatrix(Mat44Arg inMatrix)
 {
 	mRotation = inMatrix.GetQuaternion();
