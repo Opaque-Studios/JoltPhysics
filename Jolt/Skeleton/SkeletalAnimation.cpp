@@ -64,8 +64,6 @@ void SkeletalAnimation::JointState::ResetPinState()
 	mbIsPinned = false;
 	mPinnedJoint = "";
 	mPinnedTranslation = Vec3::sZero();
-	mTargetEffectorTranslation = Vec3::sZero();
-	mActualEffectorTranslation = Vec3::sZero();
 	mMarkerConstraint.RemoveConstraint();
 }
 
