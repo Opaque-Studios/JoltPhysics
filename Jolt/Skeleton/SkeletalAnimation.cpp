@@ -66,6 +66,7 @@ void SkeletalAnimation::JointState::ResetPinState()
 	mPinnedTranslation = Vec3::sZero();
 	mTargetEffectorTranslation = Vec3::sZero();
 	mActualEffectorTranslation = Vec3::sZero();
+	mMarkerConstraint.RemoveConstraint();
 }
 
 float SkeletalAnimation::GetDuration() const
